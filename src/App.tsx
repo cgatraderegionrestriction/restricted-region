@@ -5,11 +5,22 @@ import {
   ChevronRight, 
   Fingerprint, 
   Info,
-  Send
+  Send,
+  Globe,
+  Compass,
+  ShieldCheck,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  Map,
+  ExternalLink,
+  Cpu,
+  Layers,
+  ArrowRight
 } from "lucide-react";
 
 // Types for CGA restricted portal state
-type ActiveOverlay = "none" | "about";
+type ActiveOverlay = "none" | "about" | "details";
 
 interface Message {
   id: string;
@@ -20,6 +31,7 @@ interface Message {
 
 export default function App() {
   const [overlay, setOverlay] = useState<ActiveOverlay>("none");
+  const [pageView, setPageView] = useState<"restricted" | "compliance-notice" | "expansion">("restricted");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -33,7 +45,7 @@ export default function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [currentTime, setCurrentTime] = useState("2026-05-23 22:55:06 UTC");
-  const [isDark, setIsDark] = useState(false);
+  const isDark = false;
 
   const [currentPath, setCurrentPath] = useState(() => {
     return window.location.pathname;
@@ -75,6 +87,13 @@ export default function App() {
       setCurrentPath(path);
       if (path === "/404-regional-restriction") {
         setIsVerifying(false);
+        setPageView("restricted");
+      } else if (path === "/compliance-notice") {
+        setIsVerifying(false);
+        setPageView("compliance-notice");
+      } else if (path === "/cga-global-expansion") {
+        setIsVerifying(false);
+        setPageView("expansion");
       } else {
         setIsVerifying(true);
         setVerificationStep(0);
@@ -84,20 +103,7 @@ export default function App() {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Auto theme synchronization with system preference
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setIsDark(mediaQuery.matches);
-
-    const handleThemeChange = (e: MediaQueryListEvent) => {
-      setIsDark(e.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleThemeChange);
-    return () => {
-      mediaQuery.removeEventListener("change", handleThemeChange);
-    };
-  }, []);
+  // System dark-theme auto-detection disabled. Permanent Light Mode enforced.
 
   // Sync Timestamp
   useEffect(() => {
@@ -191,7 +197,9 @@ export default function App() {
   return (
     <div 
       className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans overflow-x-hidden select-none transition-all duration-700 ease-in-out px-4 py-8 md:px-8 md:py-16 ${
-        isDark ? "bg-[#09090b] text-zinc-100" : "bg-zinc-50 text-zinc-800"
+        isDark 
+          ? "bg-[#09090b] text-zinc-100" 
+          : "bg-zinc-50 text-zinc-800"
       }`}
       id="cga-landing-root"
     >
@@ -227,23 +235,30 @@ export default function App() {
         className="absolute inset-0 pointer-events-none transition-all duration-300 z-0"
         style={{
           background: isDark
-            ? `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(176, 230, 19, 0.08), rgba(0, 0, 0, 0) 50%, transparent 100%)`
-            : `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(176, 230, 19, 0.02), rgba(0, 0, 0, 0.008) 50%, transparent 100%)`,
+            ? `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(47, 12, 108, 0.15), rgba(0, 0, 0, 0) 50%, transparent 100%)`
+            : `radial-gradient(650px circle at ${mousePos.x}px ${mousePos.y}px, rgba(47, 12, 108, 0.04), rgba(0, 0, 0, 0.008) 50%, transparent 100%)`,
         }}
       />
 
       {/* Branding Header on Bare Page Background (Top Left in Desktop layout, normal flow) */}
-      <div className="w-full max-w-7xl mx-auto flex justify-start items-center mb-8 md:mb-12 px-2 md:px-4 z-30 select-none">
+      <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-8 md:mb-12 px-2 md:px-4 z-30 select-none">
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center space-x-3"
+          className="flex items-center space-x-3 cursor-pointer"
+          onClick={() => {
+            if (pageView === "expansion" || pageView === "compliance-notice") {
+              setPageView("restricted");
+              window.history.pushState({}, "", "/404-regional-restriction");
+            }
+          }}
         >
           <img 
             src="https://i.imgur.com/u7ADhK0.png" 
             alt="CGA Trades" 
-            className="w-8 h-8 object-contain select-none filter dark:brightness-110"
+            className="w-8 h-8 object-contain select-none filter dark:brightness-110 animate-spin"
+            style={{ animationDuration: '10s' }}
             referrerPolicy="no-referrer"
           />
           <span className={`font-display font-extrabold text-[15px] md:text-[17px] uppercase tracking-[0.24em] transition-colors duration-500 ${
@@ -252,6 +267,21 @@ export default function App() {
             CGA Trades
           </span>
         </motion.div>
+
+        {/* Global Nav Actions */}
+        <div className="flex items-center space-x-4">
+          {(pageView === "expansion" || pageView === "compliance-notice") && (
+            <button
+              onClick={() => {
+                setPageView("restricted");
+                window.history.pushState({}, "", "/404-regional-restriction");
+              }}
+              className="text-[11px] font-sans font-bold flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer shadow-md border-[#2F0C6C]/40 text-[#2F0C6C] bg-white hover:bg-[#2F0C6C]/5 hover:border-[#2F0C6C]"
+            >
+              ← Back
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Dynamic Router Content Container */}
@@ -343,7 +373,7 @@ export default function App() {
               />
             </div>
           </motion.div>
-        ) : (
+        ) : pageView === "restricted" ? (
           <motion.div
             key="restriction-content"
             initial={{ opacity: 0, scale: 0.98 }}
@@ -521,7 +551,7 @@ export default function App() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                    className={`w-full max-w-[460px] rounded-3xl border transition-all duration-700 pt-20 pb-10 px-8 md:pt-24 md:pb-12 md:px-11 flex flex-col items-center relative ${
+                    className={`w-full max-w-[540px] rounded-3xl border transition-all duration-700 pt-20 pb-10 px-8 md:pt-24 md:pb-12 md:px-11 flex flex-col items-center relative ${
                       isDark 
                         ? "bg-zinc-900/45 backdrop-blur-xl border-zinc-800/80 shadow-[0_25px_70px_rgba(0,0,0,0.6)] shadow-primary/5 text-zinc-100" 
                         : "bg-white border-zinc-200/85 shadow-[0_20px_60px_rgba(0,0,0,0.04)] text-zinc-800"
@@ -619,64 +649,680 @@ export default function App() {
                     </div>
 
                     {/* Headline */}
-                    <h1 className={`font-sans text-[22px] md:text-[25px] font-bold text-center tracking-tight leading-snug mb-4 transition-colors duration-700 ${
+                    <h1 className={`font-sans text-[20.5px] md:text-[24px] font-bold text-center tracking-tight leading-snug mb-4 transition-colors duration-700 ${
                       isDark ? "text-zinc-100" : "text-zinc-900"
                     }`}>
-                      This Site Cannot Be Accessed In Your Region
+                      Region Not Supported
                     </h1>
 
-                    {/* Supporting Subtext */}
-                    <p className={`text-center font-sans text-[13.5px] leading-relaxed mb-6 px-1 transition-colors duration-700 ${
-                      isDark ? "text-zinc-400" : "text-zinc-500"
+                    {/* Restored Original Specific Compliance Text */}
+                    <div className={`w-full text-center sm:text-left font-sans text-[13.5px] md:text-[14.5px] leading-relaxed mb-8 transition-all duration-700 ${
+                      isDark ? "text-zinc-300" : "text-zinc-600"
                     }`}>
-                      Due to regional compliance and regulatory restrictions, access to this platform is currently denied in your location.
-                    </p>
-
-
-
-                    {/* Divider spacing */}
-                    <div className={`w-16 h-[2px] rounded-full mb-6 transition-colors duration-700 ${
-                      isDark ? "bg-primary/50" : "bg-primary/30"
-                    }`} />
-
-                    {/* Support & Contact Action */}
-                    <div className={`text-center text-[12.8px] mb-8 border px-4 py-3.5 rounded-2xl w-full transition-all duration-700 ${
-                      isDark 
-                        ? "bg-zinc-950/60 border-zinc-800/80 text-zinc-400" 
-                        : "bg-zinc-50 border-zinc-100/90 text-zinc-400"
-                    }`}>
-                      If you believe this is an error, please{" "}
-                      <button
-                        onClick={() => setIsChatOpen(true)}
-                        className={`font-semibold underline cursor-pointer hover:no-underline transition-all inline-flex items-center gap-0.5 ${
-                          isDark ? "text-primary hover:text-primary-light" : "text-primary-dark hover:text-primary"
-                        }`}
-                        id="action-contact-support"
-                      >
-                        contact support
-                      </button>
-                      .
+                      <p>
+                        This site is currently unavailable in your location due to regional compliance policies, financial regulations, and service restrictions.
+                      </p>
                     </div>
 
-                    {/* One Only Prime Action Button */}
-                    <button
-                      onClick={() => setOverlay("about")}
-                      className={`w-full h-12 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer shadow-md flex items-center justify-center gap-2 group active:scale-[0.98] ${
-                        isDark 
-                          ? "bg-primary text-zinc-950 hover:bg-primary-hover shadow-[0_4px_22px_rgba(176,230,19,0.22)] hover:shadow-[0_6px_28px_rgba(176,230,19,0.35)] border border-primary/20" 
-                          : "bg-primary text-zinc-950 hover:bg-primary-hover shadow-[0_4px_16px_rgba(123,155,13,0.15)] hover:shadow-[0_6px_22px_rgba(123,155,13,0.24)] border border-primary/10"
-                      }`}
-                      id="btn-read-about-cga"
-                    >
-                      Read About CGA Trades
-                      <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                    </button>
+                     {/* Read About Restriction Button */}
+                     <button
+                       onClick={() => {
+                         setPageView("compliance-notice");
+                         window.history.pushState({}, "", "/compliance-notice");
+                       }}
+                       className={`w-full h-11 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-350 cursor-pointer shadow-md flex items-center justify-center gap-1.5 group active:scale-[0.98] ${
+                         isDark 
+                           ? "bg-primary text-zinc-950 hover:bg-primary-hover hover:scale-[1.015] shadow-[0_4px_20px_rgba(176,230,19,0.22)] hover:shadow-[0_6px_25px_rgba(176,230,19,0.35)] border border-primary/20" 
+                           : "bg-primary text-zinc-950 hover:bg-primary-hover hover:scale-[1.015] shadow-[0_4px_14px_rgba(123,155,13,0.15)] hover:shadow-[0_6px_20px_rgba(123,155,13,0.24)] border border-primary/10"
+                       }`}
+                       id="btn-read-about-restriction"
+                     >
+                       Read About Restriction
+                       <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                     </button>
 
                   </motion.div>
                 </div>
 
               </div>
             </main>
+          </motion.div>
+        ) : pageView === "compliance-notice" ? (
+          <motion.div
+            key="compliance-notice-content"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-4xl mx-auto px-4 py-4 md:py-8 relative z-10 text-left select-none"
+            id="compliance-notice-view"
+          >
+            {/* Page Header / Intro Hero */}
+            <div className={`text-center md:text-left mb-10 md:mb-14 border-b pb-8 transition-colors duration-300 ${
+              isDark ? "border-[#2F0C6C]/35" : "border-[#2F0C6C]/20"
+            }`}>
+              <span className={`text-[11.5px] font-mono tracking-[0.22em] uppercase font-bold px-4 py-2 rounded-full border inline-block mb-4 shadow-sm transition-colors duration-300 ${
+                isDark 
+                  ? "text-zinc-200 bg-[#2F0C6C]/20 border-[#2F0C6C]/60" 
+                  : "text-[#2F0C6C] bg-[#2F0C6C]/5 border-[#2F0C6C]/30"
+              }`}>
+                Official Regulatory Disclosure
+              </span>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col md:flex-row items-center md:justify-start gap-3">
+                  <div className={`p-2.5 rounded-xl border animate-pulse shrink-0 ${
+                    isDark 
+                      ? "bg-[#2F0C6C]/20 border-[#2F0C6C]/55 text-zinc-100" 
+                      : "bg-[#2F0C6C]/5 border-[#2F0C6C]/30 text-[#2F0C6C]"
+                  }`}>
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <h1 className={`font-display text-2xl md:text-4xl font-black tracking-tight leading-none text-center md:text-left transition-colors duration-300 ${
+                    isDark ? "text-white" : "text-zinc-950"
+                  }`}>
+                    Restricted Regional Accessibility & U.S. Compliance Notice
+                  </h1>
+                </div>
+              </div>
+              <p className={`font-sans text-[14.5px] md:text-[17px] max-w-3xl leading-relaxed mt-4 text-center md:text-left transition-colors duration-300 ${
+                isDark ? "text-zinc-350" : "text-zinc-600"
+              }`}>
+                CGA Capital Growth Alliance Regulatory Framework & Regional Access Guidance
+              </p>
+            </div>
+
+            {/* Core Legal Article Content in modern financial tech style card */}
+            <div className={`p-6 md:p-10 rounded-3xl border transition-all duration-500 shadow-2xl mb-12 space-y-8 ${
+              isDark 
+                ? "bg-zinc-900/40 backdrop-blur-md border-[#2F0C6C]/40 shadow-[#2F0C6C]/5" 
+                : "bg-white/70 backdrop-blur-md border-[#2F0C6C]/20 shadow-xl shadow-[#2F0C6C]/5"
+            }`} id="compliance-notice-article">
+              
+              {/* SECTION 1: Institutional Fiduciary Mandate */}
+              <div className="space-y-3">
+                <div className={`flex items-center space-x-2 font-bold font-sans text-base transition-colors duration-300 ${
+                  isDark ? "text-zinc-100" : "text-zinc-900"
+                }`}>
+                  <span className="text-[#2F0C6C] font-mono font-black">01.</span>
+                  <h3>Corporate & Institutional Mandate</h3>
+                </div>
+                <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                  isDark ? "text-zinc-200" : "text-zinc-650"
+                }`}>
+                  CGA Trades is an international multi-asset absolute-return administrator and fiduciary, catering strictly to sovereign entities, accredited corporate allocators, and certified qualified purchasers globally.
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className={`h-px bg-gradient-to-r via-[#2F0C6C]/20 to-transparent transition-colors duration-300 ${
+                isDark ? "from-[#2F0C6C]/50" : "from-[#2F0C6C]/30"
+              }`} />
+
+              {/* SECTION 2: Geographic Regulatory Constraints */}
+              <div className="space-y-3">
+                <div className={`flex items-center space-x-2 font-bold font-sans text-base transition-colors duration-300 ${
+                  isDark ? "text-zinc-100" : "text-zinc-900"
+                }`}>
+                  <span className="text-[#2F0C6C] font-mono font-black">02.</span>
+                  <h3>Geographic Access & Exclusion Mandate</h3>
+                </div>
+                <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                  isDark ? "text-zinc-200" : "text-zinc-650"
+                }`}>
+                  Our services are offered and maintained based upon geographic compliance criteria. CGA Trades does not market, make representations, or permit digital accessibility in selected jurisdictions where regional regulatory guidelines (including CFTC Subpart C, ESMA retail MiFID restrictions, or specific financial oversight bans) constrain the public dispersal of complex alternative assets.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className={`p-4 rounded-xl border font-mono text-[11px] leading-relaxed transition-all duration-300 ${
+                    isDark 
+                      ? "bg-[#2F0C6C]/10 border-[#2F0C6C]/30 text-zinc-350" 
+                      : "bg-[#2F0C6C]/5 border-[#2F0C6C]/15 text-zinc-700"
+                  }`}>
+                    <span className="text-[#2F0C6C] font-extrabold block mb-1">CFTC Subpart C:</span> Restricts direct off-exchange contracts and structured derivatives placement for non-qualified retail participants.
+                  </div>
+                  <div className={`p-4 rounded-xl border font-mono text-[11px] leading-relaxed transition-all duration-300 ${
+                    isDark 
+                      ? "bg-[#2F0C6C]/10 border-[#2F0C6C]/30 text-zinc-350" 
+                      : "bg-[#2F0C6C]/5 border-[#2F0C6C]/15 text-zinc-700"
+                  }`}>
+                    <span className="text-[#2F0C6C] font-extrabold block mb-1">ESMA MiFID II:</span> Imposes severe leverages caps, mandatory marketing disclosures, and ban triggers for retail digital assets.
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className={`h-px bg-gradient-to-r via-[#2F0C6C]/20 to-transparent transition-colors duration-300 ${
+                isDark ? "from-[#2F0C6C]/50" : "from-[#2F0C6C]/30"
+              }`} />
+
+              {/* SECTION 3: U.S. Regional Access Parameters */}
+              <div className="space-y-3">
+                <div className={`flex items-center space-x-2 font-bold font-sans text-base transition-colors duration-300 ${
+                  isDark ? "text-zinc-100" : "text-zinc-900"
+                }`}>
+                  <span className="text-[#2F0C6C] font-mono font-black">03.</span>
+                  <h3>United States Security & Compliance Guidelines</h3>
+                </div>
+                <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                  isDark ? "text-zinc-200" : "text-zinc-650"
+                }`}>
+                  Platform access and operational features are currently restricted solely to verified United States citizens, permanent residents, and documented immigrants. This requirement ensures that CGA and its affiliates maintain active compliance with the Bank Secrecy Act (BSA), Office of Foreign Assets Control (OFAC) sanctions, and state-level financial transmission guidelines.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                  <div className={`flex items-center gap-2.5 p-3 rounded-xl border text-[11px] font-sans font-medium transition-colors duration-300 ${
+                    isDark 
+                      ? "bg-zinc-950/25 border-[#2F0C6C]/30 text-zinc-300" 
+                      : "bg-white border-[#2F0C6C]/15 text-zinc-750 shadow-sm"
+                  }`}>
+                    <span className="text-[#2F0C6C] text-xs font-bold font-mono">■</span> KYC & SSN Verification
+                  </div>
+                  <div className={`flex items-center gap-2.5 p-3 rounded-xl border text-[11px] font-sans font-medium transition-colors duration-300 ${
+                    isDark 
+                      ? "bg-zinc-950/25 border-[#2F0C6C]/30 text-zinc-300" 
+                      : "bg-white border-[#2F0C6C]/15 text-zinc-750 shadow-sm"
+                  }`}>
+                    <span className="text-[#2F0C6C] text-xs font-bold font-mono">■</span> SEC Reg D Exemptions
+                  </div>
+                  <div className={`flex items-center gap-2.5 p-3 rounded-xl border text-[11px] font-sans font-medium transition-colors duration-300 ${
+                    isDark 
+                      ? "bg-zinc-950/25 border-[#2F0C6C]/30 text-zinc-300" 
+                      : "bg-white border-[#2F0C6C]/15 text-zinc-750 shadow-sm"
+                  }`}>
+                    <span className="text-[#2F0C6C] text-xs font-bold font-mono">■</span> OFAC Geolocation Filters
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className={`h-px bg-gradient-to-r via-[#2F0C6C]/20 to-transparent transition-colors duration-300 ${
+                isDark ? "from-[#2F0C6C]/50" : "from-[#2F0C6C]/30"
+              }`} />
+
+              {/* HIGHLIGHTED SECTION: International Access Information */}
+              <div className={`p-6 rounded-2xl border shadow-inner space-y-3 transition-colors duration-300 ${
+                isDark 
+                  ? "bg-gradient-to-b from-[#2F0C6C]/20 to-[#2F0C6C]/5 border-[#2F0C6C]/50" 
+                  : "bg-gradient-to-b from-[#2F0C6C]/10 to-transparent border-[#2F0C6C]/30"
+              }`} id="international-notice-highlight">
+                <h4 className={`font-sans font-extrabold text-xs uppercase tracking-wider ${
+                  isDark ? "text-zinc-200" : "text-[#2F0C6C]"
+                }`}>
+                  International Access Information
+                </h4>
+                <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed ${
+                  isDark ? "text-zinc-200" : "text-zinc-800"
+                }`}>
+                  CGA continues to develop regulatory gateways and secure licensing overrides with sovereign authorities across Europe, Africa, and Asia. For institutional allocators and prospective foreign qualified purchasers seeking information about our digital expansion initiative, {" "}
+                  <button
+                    onClick={() => {
+                      setPageView("expansion");
+                      window.history.pushState({}, "", "/cga-global-expansion");
+                    }}
+                    className={`font-black hover:underline inline-flex items-center gap-0.5 cursor-pointer focus:outline-none transition-all ${
+                      isDark ? "text-[#a47bdf] hover:text-[#bca4e7]" : "text-[#2F0C6C] hover:text-indigo-950"
+                    }`}
+                  >
+                    See more <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </p>
+              </div>
+
+            </div>
+
+            {/* Back action */}
+            <div className={`text-center py-8 border-t border-dashed max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 ${
+              isDark ? "border-[#2F0C6C]/45" : "border-[#2F0C6C]/25"
+            }`}>
+              <p className={`font-sans text-[12px] leading-relaxed text-left sm:max-w-md transition-colors duration-300 ${
+                isDark ? "text-zinc-400" : "text-zinc-500"
+              }`}>
+                To coordinate custom manual region mapping or institutional whitelisting reviews, please reach out via helpdesk chat or at compliance@cga-trades.com.
+              </p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="expansion-content"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-6xl mx-auto px-4 py-4 md:py-8 relative z-10 text-left select-none"
+            id="expansion-initiative-view"
+          >
+            {/* Page Header / Intro Hero */}
+            <div className={`text-center md:text-left mb-10 md:mb-14 border-b pb-8 transition-colors duration-300 ${
+              isDark ? "border-[#2F0C6C]/35" : "border-[#2F0C6C]/20"
+            }`}>
+              <span className={`text-[11.5px] font-mono tracking-[0.22em] uppercase font-bold px-4 py-2 rounded-full border inline-block mb-4 shadow-sm transition-all duration-300 ${
+                isDark 
+                  ? "text-zinc-200 bg-[#2F0C6C]/20 border-[#2F0C6C]/60" 
+                  : "text-[#2F0C6C] bg-[#2F0C6C]/5 border-[#2F0C6C]/30"
+              }`}>
+                Compliance & Strategic Rollout Portal
+              </span>
+              <h1 className={`font-display text-3xl md:text-5xl font-black tracking-tight leading-none mb-4 transition-colors duration-305 ${
+                isDark ? "text-white" : "text-zinc-950"
+              }`}>
+                Restricted Regional Accessibility
+              </h1>
+              <p className={`font-sans text-[14.5px] md:text-[17px] max-w-3xl leading-relaxed transition-colors duration-305 ${
+                isDark ? "text-zinc-300" : "text-zinc-620"
+              }`}>
+                CGA Capital Growth Alliance Global Compliance & Expansion Framework
+              </p>
+            </div>
+
+            {/* Split Grid for SECTION 1 — ABOUT CGA and SECTION 2 — U.S. ACCESSIBILITY */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+              {/* SECTION 1 — ABOUT CGA */}
+              <div 
+                className={`p-6 md:p-8 rounded-3xl border flex flex-col justify-between transition-all duration-500 shadow-xl ${
+                  isDark 
+                    ? "bg-zinc-900/40 backdrop-blur-md border-[#2F0C6C]/35 hover:border-[#2F0C6C]/60 shadow-[#2F0C6C]/5" 
+                    : "bg-white/70 backdrop-blur-md border-[#2F0C6C]/20 hover:border-[#2F0C6C]/40 shadow-zinc-200"
+                }`} 
+                id="about-cga-section"
+              >
+                <div>
+                  <div className="flex items-center space-x-3 mb-5">
+                    <div className={`p-2.5 rounded-xl border transition-all duration-300 ${
+                      isDark 
+                        ? "bg-[#2F0C6C]/15 border-[#2F0C6C]/35 text-zinc-100" 
+                        : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                    }`}>
+                      <Cpu className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <h3 className={`font-sans font-bold text-lg md:text-xl transition-colors duration-300 ${
+                      isDark ? "text-white" : "text-zinc-900"
+                    }`}>
+                      About CGA
+                    </h3>
+                  </div>
+                  
+                  <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                    isDark ? "text-zinc-200" : "text-zinc-700"
+                  }`}>
+                    Founded in 2020 by Willis Anthony following the rise of digital asset innovation and the Bitcoin financial revolution, Capital Growth Alliance (CGA) has evolved into a trusted AI-powered financial institution serving over 200,000 investors across the United States.
+                  </p>
+                  <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed mt-4 transition-colors duration-300 ${
+                    isDark ? "text-zinc-400" : "text-zinc-550"
+                  }`}>
+                    CGA delivers advanced automated investment technologies designed to support long-term financial growth through intelligent AI-powered trading systems and diversified multi-asset strategies.
+                  </p>
+                </div>
+              </div>
+
+              {/* SECTION 2 — U.S. ACCESSIBILITY */}
+              <div 
+                className={`p-6 md:p-8 rounded-3xl border flex flex-col justify-between transition-all duration-500 shadow-xl ${
+                  isDark 
+                    ? "bg-zinc-900/40 backdrop-blur-md border-[#2F0C6C]/35 hover:border-[#2F0C6C]/60 shadow-[#2F0C6C]/5" 
+                    : "bg-white/70 backdrop-blur-md border-[#2F0C6C]/20 hover:border-[#2F0C6C]/40 shadow-zinc-200"
+                }`} 
+                id="us-accessibility-section"
+              >
+                <div>
+                  <div className="flex items-center space-x-3 mb-5">
+                    <div className={`p-2.5 rounded-xl border transition-all duration-300 ${
+                      isDark 
+                        ? "bg-[#2F0C6C]/15 border-[#2F0C6C]/35 text-zinc-100" 
+                        : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                    }`}>
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <h3 className={`font-sans font-bold text-lg md:text-xl transition-colors duration-300 ${
+                      isDark ? "text-white" : "text-zinc-900"
+                    }`}>
+                      U.S. Accessibility
+                    </h3>
+                  </div>
+                  
+                  <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                    isDark ? "text-zinc-200" : "text-zinc-700"
+                  }`}>
+                    At present, CGA services and investment accessibility remain exclusive to verified United States citizens, permanent residents, and documented immigrants who successfully complete identity verification and Social Security authentication requirements.
+                  </p>
+                  <p className={`font-sans text-[13px] md:text-[14px] leading-relaxed mt-4 transition-colors duration-300 ${
+                    isDark ? "text-zinc-400" : "text-zinc-550"
+                  }`}>
+                    This restriction exists to maintain regulatory compliance, platform security, and institutional operational standards.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 3 — RESTRICTED REGIONS */}
+            <div className="mb-12">
+              <h3 className={`font-sans font-bold text-lg md:text-xl mb-6 transition-colors duration-300 ${
+                isDark ? "text-white" : "text-zinc-900"
+              }`}>
+                Restricted Jurisdictions
+              </h3>
+              
+              {/* 3 Premium Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                {[
+                  {
+                    name: "Africa",
+                    tag: "Exempted Flow",
+                    icon: Globe,
+                    desc: "Digital Asset Onboarding & Micro-licensing",
+                  },
+                  {
+                    name: "Europe",
+                    tag: "MiFID Sandbox",
+                    icon: ShieldCheck,
+                    desc: "Unified Qualified Buyer Certifications Ready",
+                  },
+                  {
+                    name: "Asia",
+                    tag: "Strategic Hub",
+                    icon: Compass,
+                    desc: "High-Volume Sovereign Entity Placement",
+                  },
+                ].map((card, idx) => {
+                  const IconComp = card.icon;
+                  return (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.03, y: -4 }}
+                      className={`p-6 rounded-2xl border flex flex-col justify-between h-44 transition-all duration-300 cursor-pointer shadow-md ${
+                        isDark 
+                          ? "bg-zinc-900/40 border-[#2F0C6C]/30 hover:border-[#2F0C6C]/65 shadow-[#2F0C6C]/5" 
+                          : "bg-white border-[#2F0C6C]/20 hover:border-[#2F0C6C]/50 shadow-sm"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className={`p-2.5 rounded-xl border shadow-sm transition-colors ${
+                          isDark 
+                            ? "bg-zinc-950/80 border-[#2F0C6C]/40 text-zinc-200" 
+                            : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                        }`}>
+                          <IconComp className="w-5 h-5 animate-pulse" />
+                        </div>
+                        <span className={`text-[9.5px] font-mono font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border transition-colors ${
+                          isDark 
+                            ? "bg-zinc-950/60 text-zinc-300 border-[#2F0C6C]/30" 
+                            : "bg-[#2F0C6C]/5 text-[#2F0C6C] border-[#2F0C6C]/20"
+                        }`}>
+                          {card.tag}
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <h4 className={`font-sans font-bold text-base transition-colors ${isDark ? "text-zinc-100" : "text-zinc-900"}`}>{card.name} Region</h4>
+                        <p className={`text-[11.5px] mt-1 leading-snug transition-colors ${isDark ? "text-zinc-400" : "text-zinc-550"}`}>{card.desc}</p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Description Below Cards */}
+              <p className={`text-xs md:text-[13px] leading-relaxed transition-colors duration-500 mt-4 border-l-2 pl-3 ${
+                isDark ? "border-[#2F0C6C] text-zinc-400" : "border-[#2F0C6C] text-zinc-500"
+              }`}>
+                Due to regional regulatory frameworks and licensing limitations, direct accessibility is currently unavailable within selected international jurisdictions.
+              </p>
+            </div>
+
+            {/* SECTION 4 — GLOBAL EXPANSION */}
+            <div 
+              className={`p-6 md:p-8 rounded-3xl border mb-12 transition-all duration-500 shadow-lg ${
+                isDark 
+                  ? "bg-zinc-900/40 border-[#2F0C6C]/35 shadow-[#2F0C6C]/5" 
+                  : "bg-white/70 border-[#2F0C6C]/20 shadow-sm"
+              }`} 
+              id="global-expansion-section"
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className={`p-2.5 rounded-xl border transition-all duration-300 ${
+                  isDark 
+                    ? "bg-[#2F0C6C]/15 border-[#2F0C6C]/35 text-zinc-100 animate-pulse" 
+                    : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                }`}>
+                  <Layers className="w-5 h-5" />
+                </div>
+                <h3 className={`font-sans font-bold text-lg md:text-xl transition-colors duration-300 ${
+                  isDark ? "text-white" : "text-zinc-900"
+                }`}>
+                  Global Expansion Initiative
+                </h3>
+              </div>
+
+              <div className={`font-sans text-[13px] md:text-[14px] leading-relaxed space-y-4 transition-colors duration-300 ${
+                isDark ? "text-zinc-200" : "text-zinc-700"
+              }`}>
+                <p>
+                  In May 2025, CGA launched its international expansion framework focused on extending AI-powered financial accessibility beyond the United States.
+                </p>
+                <p>
+                  The company is actively developing compliant infrastructure, multilingual systems, and region-specific onboarding experiences for future global participation.
+                </p>
+              </div>
+            </div>
+
+            {/* SECTION 5 — TARGET COUNTRIES */}
+            <div className="mb-12">
+              <h3 className={`font-display text-lg md:text-xl font-bold tracking-tight mb-6 transition-colors duration-300 ${
+                isDark ? "text-white" : "text-zinc-900"
+              }`}>
+                Target Global Jurisdictions
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* ASIA */}
+                <div 
+                  className={`p-6 rounded-3xl border transition-all duration-300 shadow-sm ${
+                    isDark 
+                      ? "bg-zinc-900/40 border-[#2F0C6C]/30 hover:border-[#2F0C6C]/60" 
+                      : "bg-white border-[#2F0C6C]/25 hover:border-[#2F0C6C]/45"
+                  }`} 
+                  id="asia-countries-tier"
+                >
+                  <div className={`flex items-center space-x-2.5 mb-5 border-b pb-3 transition-colors duration-300 ${
+                    isDark ? "border-[#2F0C6C]/30" : "border-[#2F0C6C]/15"
+                  }`}>
+                    <div className={`p-2 rounded-xl border transition-colors ${
+                      isDark 
+                        ? "bg-[#2F0C6C]/15 border-[#2F0C6C]/30 text-zinc-100" 
+                        : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                    }`}>
+                      <Compass className="w-4 h-4" />
+                    </div>
+                    <h4 className={`font-sans font-extrabold text-[13px] tracking-wider uppercase transition-colors ${
+                      isDark ? "text-zinc-300" : "text-[#2F0C6C]"
+                    }`}>
+                      Asia Target Scope
+                    </h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {["Singapore", "Japan", "South Korea", "India", "Malaysia", "Indonesia", "Thailand", "Philippines", "Vietnam", "UAE"].map((c, i) => (
+                      <motion.span 
+                        key={i}
+                        whileHover={{ scale: 1.05 }}
+                        className={`text-[11.5px] font-sans font-medium px-3 py-1.5 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm ${
+                          isDark 
+                            ? "bg-zinc-950/40 border-[#2F0C6C]/25 hover:bg-[#2F0C6C]/15 hover:border-[#2F0C6C]/60 text-zinc-200" 
+                            : "bg-[#2F0C6C]/5 border-[#2F0C6C]/15 hover:bg-[#2F0C6C]/10 hover:border-[#2F0C6C]/40 text-[#2F0C6C]"
+                        }`}
+                      >
+                        {c}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* EUROPE */}
+                <div 
+                  className={`p-6 rounded-3xl border transition-all duration-300 shadow-sm ${
+                    isDark 
+                      ? "bg-zinc-900/40 border-[#2F0C6C]/30 hover:border-[#2F0C6C]/60" 
+                      : "bg-white border-[#2F0C6C]/25 hover:border-[#2F0C6C]/45"
+                  }`} 
+                  id="europe-countries-tier"
+                >
+                  <div className={`flex items-center space-x-2.5 mb-5 border-b pb-3 transition-colors duration-300 ${
+                    isDark ? "border-[#2F0C6C]/30" : "border-[#2F0C6C]/15"
+                  }`}>
+                    <div className={`p-2 rounded-xl border transition-colors ${
+                      isDark 
+                        ? "bg-[#2F0C6C]/15 border-[#2F0C6C]/30 text-zinc-100" 
+                        : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                    }`}>
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <h4 className={`font-sans font-extrabold text-[13px] tracking-wider uppercase transition-colors ${
+                      isDark ? "text-zinc-300" : "text-[#2F0C6C]"
+                    }`}>
+                      Europe Target Scope
+                    </h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {["United Kingdom", "Germany", "France", "Netherlands", "Switzerland", "Sweden", "Norway", "Italy", "Spain", "Belgium"].map((c, i) => (
+                      <motion.span 
+                        key={i}
+                        whileHover={{ scale: 1.05 }}
+                        className={`text-[11.5px] font-sans font-medium px-3 py-1.5 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm ${
+                          isDark 
+                            ? "bg-zinc-950/40 border-[#2F0C6C]/25 hover:bg-[#2F0C6C]/15 hover:border-[#2F0C6C]/60 text-zinc-200" 
+                            : "bg-[#2F0C6C]/5 border-[#2F0C6C]/15 hover:bg-[#2F0C6C]/10 hover:border-[#2F0C6C]/40 text-[#2F0C6C]"
+                        }`}
+                      >
+                        {c}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AFRICA */}
+                <div 
+                  className={`p-6 rounded-3xl border transition-all duration-300 shadow-sm ${
+                    isDark 
+                      ? "bg-zinc-900/40 border-[#2F0C6C]/30 hover:border-[#2F0C6C]/60" 
+                      : "bg-white border-[#2F0C6C]/25 hover:border-[#2F0C6C]/45"
+                  }`} 
+                  id="africa-countries-tier"
+                >
+                  <div className={`flex items-center space-x-2.5 mb-5 border-b pb-3 transition-colors duration-300 ${
+                    isDark ? "border-[#2F0C6C]/30" : "border-[#2F0C6C]/15"
+                  }`}>
+                    <div className={`p-2 rounded-xl border transition-colors ${
+                      isDark 
+                        ? "bg-[#2F0C6C]/15 border-[#2F0C6C]/30 text-zinc-100" 
+                        : "bg-[#2F0C6C]/5 border-[#2F0C6C]/20 text-[#2F0C6C]"
+                    }`}>
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                    <h4 className={`font-sans font-extrabold text-[13px] tracking-wider uppercase transition-colors ${
+                      isDark ? "text-zinc-300" : "text-[#2F0C6C]"
+                    }`}>
+                      Africa Target Scope
+                    </h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {["Nigeria", "South Africa", "Kenya", "Ghana", "Rwanda", "Egypt", "Morocco", "Botswana"].map((c, i) => (
+                      <motion.span 
+                        key={i}
+                        whileHover={{ scale: 1.05 }}
+                        className={`text-[11.5px] font-sans font-medium px-3 py-1.5 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm ${
+                          isDark 
+                            ? "bg-zinc-950/40 border-[#2F0C6C]/25 hover:bg-[#2F0C6C]/15 hover:border-[#2F0C6C]/60 text-zinc-200" 
+                            : "bg-[#2F0C6C]/5 border-[#2F0C6C]/15 hover:bg-[#2F0C6C]/10 hover:border-[#2F0C6C]/40 text-[#2F0C6C]"
+                        }`}
+                      >
+                        {c}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 6 — TAVARIWAVE PLATFORM */}
+            <div className="mb-12">
+              <div 
+                className={`p-8 md:p-10 rounded-3xl border relative overflow-hidden transition-all duration-500 shadow-2xl ${
+                  isDark 
+                    ? "bg-zinc-900/55 border-[#2F0C6C]/40 shadow-[#2F0C6C]/5" 
+                    : "bg-white/75 backdrop-blur-md border-[#2F0C6C]/25 shadow-[#2F0C6C]/5"
+                }`} 
+                id="tavariwave-premium-spotlight"
+              >
+                
+                {/* Diagonal subtle lines context */}
+                <div className="absolute inset-0 bg-[#2F0C6C]/[0.02] bg-grid-pattern opacity-40 pointer-events-none" />
+
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-8 space-y-4">
+                    <div className="inline-flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#2F0C6C] animate-ping" />
+                      <span className={`text-[11px] font-mono tracking-widest uppercase font-bold transition-colors ${
+                        isDark ? "text-zinc-300" : "text-[#2F0C6C]"
+                      }`}>
+                        International Onboarding Live
+                      </span>
+                    </div>
+                    <h3 className={`font-display font-black text-2xl md:text-3xl tracking-tight leading-none transition-colors duration-300 ${
+                      isDark ? "text-white" : "text-zinc-900"
+                    }`}>
+                      International Extension Platform
+                    </h3>
+                    <p className={`font-sans text-[13.5px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                      isDark ? "text-zinc-200" : "text-zinc-700"
+                    }`}>
+                      To support users outside the United States, CGA introduced its international extension ecosystem designed for Africa, Europe, and Asia.
+                    </p>
+                    <p className={`font-sans text-[13.5px] md:text-[14px] leading-relaxed transition-colors duration-300 ${
+                      isDark ? "text-zinc-400" : "text-zinc-550"
+                    }`}>
+                      The TavariWave platform provides a modern AI-powered financial experience focused on accessibility, exploration, and secure automated investment technology for global users.
+                    </p>
+
+                    {/* Domain Display with custom click, glow, and hover */}
+                    <div className="pt-3">
+                      <a 
+                        href="https://www.tavariwave.online"
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`group relative inline-flex items-center gap-2 font-mono text-base font-extrabold transition-all duration-300 ${
+                          isDark 
+                            ? "text-[#a47bdf] hover:text-[#bca4e7]" 
+                            : "text-[#2F0C6C] hover:text-[#3d108d]"
+                        }`}
+                      >
+                        <span className="underline underline-offset-4 decoration-current/40 group-hover:decoration-[#bca4e7] transition-colors">
+                          www.tavariwave.online
+                        </span>
+                        <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-4 flex justify-end">
+                    <a 
+                      href="https://www.tavariwave.online"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full lg:w-auto h-12 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer shadow-md bg-[#2F0C6C] text-white hover:bg-[#3e138c] active:scale-[0.97] shadow-[0_4px_20px_rgba(47,12,108,0.25)]"
+                    >
+                      Explore TavariWave
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Back Nav Link block at bottom */}
+            <div className={`text-center py-8 border-t border-dashed max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 ${
+              isDark ? "border-[#2F0C6C]/45" : "border-[#2F0C6C]/25"
+            }`}>
+              <p className={`font-sans text-[12px] leading-relaxed text-left sm:max-w-md transition-colors duration-300 ${
+                isDark ? "text-zinc-400" : "text-zinc-550"
+              }`}>
+                CGA Capital Growth Alliance is committed to expanding digital asset administration in coordinate with sovereign whitelists on an ongoing basis.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -860,6 +1506,8 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Global Expansion Regions Modal has been migrated to the new routed subpage */}
 
       {/* CGA Regulatory Informational Overlay Overlay */}
       <AnimatePresence>
