@@ -196,7 +196,11 @@ export default function App() {
 
   return (
     <div 
-      className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans overflow-x-hidden select-none transition-all duration-700 ease-in-out px-4 py-8 md:px-8 md:py-16 ${
+      className={`relative min-h-screen w-full flex flex-col items-center justify-start font-sans overflow-x-hidden select-none transition-all duration-700 ease-in-out ${
+        pageView === "restricted" 
+          ? "px-4 pt-1 pb-8 md:px-8 md:py-16" 
+          : "px-4 py-8 md:px-8 md:py-16"
+      } ${
         isDark 
           ? "bg-[#09090b] text-zinc-100" 
           : "bg-zinc-50 text-zinc-800"
@@ -210,10 +214,8 @@ export default function App() {
 
       {/* Extreme Low-Opacity Background Globe Wireframe Watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none">
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 250, repeat: Infinity, ease: "linear" }}
-          className={`w-[850px] h-[850px] md:w-[1100px] md:h-[1100px] transition-all duration-700 ${
+        <div 
+          className={`w-[850px] h-[850px] md:w-[1100px] md:h-[1100px] transition-all duration-300 ${
             isDark ? "opacity-[0.02] text-zinc-200" : "opacity-[0.035] text-zinc-950"
           }`}
         >
@@ -227,7 +229,7 @@ export default function App() {
             <path d="M22,10 Q48,50 22,90" strokeDasharray="2 1" />
             <path d="M78,10 Q52,50 78,90" strokeDasharray="2 1" />
           </svg>
-        </motion.div>
+        </div>
       </div>
 
       {/* Spot reflection element following cursor for a modern glassy aura */}
@@ -241,48 +243,50 @@ export default function App() {
       />
 
       {/* Branding Header on Bare Page Background (Top Left in Desktop layout, normal flow) */}
-      <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-8 md:mb-12 px-2 md:px-4 z-30 select-none">
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="flex items-center space-x-3 cursor-pointer"
-          onClick={() => {
-            if (pageView === "expansion" || pageView === "compliance-notice") {
-              setPageView("restricted");
-              window.history.pushState({}, "", "/404-regional-restriction");
-            }
-          }}
-        >
-          <img 
-            src="https://i.imgur.com/u7ADhK0.png" 
-            alt="CGA Trades" 
-            className="w-8 h-8 object-contain select-none filter dark:brightness-110 animate-spin"
-            style={{ animationDuration: '10s' }}
-            referrerPolicy="no-referrer"
-          />
-          <span className={`font-display font-extrabold text-[15px] md:text-[17px] uppercase tracking-[0.24em] transition-colors duration-500 ${
-            isDark ? "text-zinc-100" : "text-zinc-950"
-          }`}>
-            CGA Trades
-          </span>
-        </motion.div>
-
-        {/* Global Nav Actions */}
-        <div className="flex items-center space-x-4">
-          {(pageView === "expansion" || pageView === "compliance-notice") && (
-            <button
-              onClick={() => {
+      {pageView !== "restricted" && (
+        <div className="w-full max-w-7xl mx-auto flex justify-between items-center mb-8 md:mb-12 px-2 md:px-4 z-30 select-none">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="flex items-center space-x-3 cursor-pointer"
+            onClick={() => {
+              if (pageView === "expansion" || pageView === "compliance-notice") {
                 setPageView("restricted");
                 window.history.pushState({}, "", "/404-regional-restriction");
-              }}
-              className="text-[11px] font-sans font-bold flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer shadow-md border-[#2F0C6C]/40 text-[#2F0C6C] bg-white hover:bg-[#2F0C6C]/5 hover:border-[#2F0C6C]"
-            >
-              ← Back
-            </button>
-          )}
+              }
+            }}
+          >
+            <img 
+              src="https://i.imgur.com/u7ADhK0.png" 
+              alt="CGA Trades" 
+              className="w-8 h-8 object-contain select-none filter dark:brightness-110 animate-spin"
+              style={{ animationDuration: '10s' }}
+              referrerPolicy="no-referrer"
+            />
+            <span className={`font-display font-extrabold text-[15px] md:text-[17px] uppercase tracking-[0.24em] transition-colors duration-500 ${
+              isDark ? "text-zinc-100" : "text-zinc-950"
+            }`}>
+              CGA Trades
+            </span>
+          </motion.div>
+
+          {/* Global Nav Actions */}
+          <div className="flex items-center space-x-4">
+            {(pageView === "expansion" || pageView === "compliance-notice") && (
+              <button
+                onClick={() => {
+                  setPageView("restricted");
+                  window.history.pushState({}, "", "/404-regional-restriction");
+                }}
+                className="text-[11px] font-sans font-bold flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-300 cursor-pointer shadow-md border-[#2F0C6C]/40 text-[#2F0C6C] bg-white hover:bg-[#2F0C6C]/5 hover:border-[#2F0C6C]"
+              >
+                ← Back
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Dynamic Router Content Container */}
       <div className="flex-1 w-full max-w-7xl mx-auto flex items-center justify-center z-20 relative overflow-visible px-2 md:px-4">
@@ -374,40 +378,24 @@ export default function App() {
             </div>
           </motion.div>
         ) : pageView === "restricted" ? (
-          <motion.div
-            key="restriction-content"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          <div
             className="w-full flex items-center justify-center overflow-visible"
           >
             {/* Main Responsive Split Screen Layout Area */}
-            <main className="flex-1 w-full max-w-5xl mx-auto px-6 py-6 md:py-12 flex items-center justify-center z-10 relative select-none overflow-visible">
+            <main className="flex-1 w-full max-w-5xl mx-auto px-6 pt-0 pb-6 md:py-12 flex items-center justify-center z-10 relative select-none overflow-visible">
               
               {/* Split container (Desktop side-by-side, mobile stacked beautifully) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 w-full items-center overflow-visible">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-1 lg:gap-14 w-full items-center overflow-visible">
                 
                 {/* LEFT COLUMN: Animated High-Fidelity Robot Illustration Area */}
                 <div className="col-span-1 lg:col-span-6 flex flex-col items-center justify-center relative overflow-visible">
                   
                   {/* Custom Interactive SVG Robot Illustration with smooth hover flotation loop */}
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.94, y: 15 }}
-                    animate={{ 
-                      opacity: 1, 
-                      scale: 1,
-                      y: [0, -12, 0]
-                    }}
-                    transition={{ 
-                      opacity: { duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] },
-                      scale: { duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] },
-                      y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-                    }}
-                    className="w-full max-w-[280px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[540px] xl:max-w-[600px] aspect-[4/3] flex items-center justify-center relative overflow-visible mb-6 lg:mb-0"
+                  <div 
+                    className="w-full max-w-[280px] sm:max-w-[360px] md:max-w-[420px] lg:max-w-[540px] xl:max-w-[600px] aspect-[4/3] flex items-center justify-center relative overflow-visible mb-0 lg:mb-0"
                   >
                     {/* Dynamic Speech bubble floating above with safe responsive scaling */}
-                    <div className="absolute -top-10 left-[5%] sm:left-[10%] md:left-[14%] z-20 animate-bubble-float scale-90 sm:scale-110 md:scale-135 origin-bottom-left select-none">
+                    <div className="absolute -top-10 left-[5%] sm:left-[10%] md:left-[14%] z-20 scale-90 sm:scale-110 md:scale-135 origin-bottom-left select-none">
                       <div className="bg-[#38bdf8] text-white px-6 py-2.5 rounded-2xl font-mono font-bold text-sm tracking-wider shadow-lg flex items-center space-x-1 border-2 border-sky-300">
                         <span className="text-white text-[15px] md:text-[18px] tracking-widest font-mono font-bold">404</span>
                         <span className="animate-pulse text-white/90 text-[13px] md:text-[15px]">...</span>
@@ -541,17 +529,14 @@ export default function App() {
                       </defs>
                     </svg>
 
-                  </motion.div>
+                  </div>
                 </div>
 
                 {/* RIGHT COLUMN: Pristine Restricted Access Core Card */}
-                <div className="col-span-1 lg:col-span-6 flex justify-center pt-14 lg:pt-0">
+                <div className="col-span-1 lg:col-span-6 flex justify-center pt-8 lg:pt-0">
                   
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                    className={`w-full max-w-[540px] rounded-3xl border transition-all duration-700 pt-20 pb-10 px-8 md:pt-24 md:pb-12 md:px-11 flex flex-col items-center relative ${
+                  <div
+                    className={`w-full max-w-[540px] rounded-3xl border pt-20 pb-10 px-8 md:pt-24 md:pb-12 md:px-11 flex flex-col items-center relative ${
                       isDark 
                         ? "bg-zinc-900/45 backdrop-blur-xl border-zinc-800/80 shadow-[0_25px_70px_rgba(0,0,0,0.6)] shadow-primary/5 text-zinc-100" 
                         : "bg-white border-zinc-200/85 shadow-[0_20px_60px_rgba(0,0,0,0.04)] text-zinc-800"
@@ -569,16 +554,7 @@ export default function App() {
                       <div className="absolute inset-0 bg-red-500/25 blur-2xl rounded-full scale-120 animate-pulse transition-all duration-1000" />
                       
                       {/* Huge realistic 2D warning triangle with glossy layers and drop shadow */}
-                      <motion.div 
-                        animate={{ 
-                          y: [0, -4, 0],
-                          scale: [1, 1.015, 1]
-                        }}
-                        transition={{ 
-                          duration: 4.5, 
-                          repeat: Infinity, 
-                          ease: "easeInOut" 
-                        }}
+                      <div 
                         className="w-32 h-32 relative flex items-center justify-center filter drop-shadow-[0_12px_28px_rgba(239,68,68,0.35)] hover:scale-105 transition-all duration-300 pointer-events-auto cursor-pointer"
                       >
                         <svg viewBox="0 0 100 88" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -589,26 +565,26 @@ export default function App() {
                               <stop offset="45%" stopColor="#dc2626" />
                               <stop offset="100%" stopColor="#991b1b" />
                             </linearGradient>
-
+ 
                             {/* Inner warning body gradient for rich compliance alert colors */}
                             <linearGradient id="warningInnerGrad" x1="50%" y1="0%" x2="50%" y2="100%">
                               <stop offset="0%" stopColor="#fecaca" />
                               <stop offset="15%" stopColor="#ef4444" />
                               <stop offset="100%" stopColor="#7f1d1d" />
                             </linearGradient>
-
+ 
                             {/* Mirror gloss highlight overlay */}
                             <linearGradient id="warningGlossGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.7" />
                               <stop offset="50%" stopColor="#ffffff" stopOpacity="0" />
                             </linearGradient>
-
+ 
                             {/* Exclamation shadow */}
                             <filter id="exclamationShadow" x="-20%" y="-20%" width="140%" height="140%">
                               <feDropShadow dx="0" dy="2" stdDeviation="1" floodColor="#000000" floodOpacity="0.3" />
                             </filter>
                           </defs>
-
+ 
                           {/* Outer ambient warning glow shape */}
                           <path 
                             d="M44.5 5.5c2.5-4.3 8.5-4.3 11 0l39.5 68.3c2.5 4.3-.5 9.7-5.5 9.7H10.5c-5 0-8-5.4-5.5-9.7L44.5 5.5z" 
@@ -616,26 +592,26 @@ export default function App() {
                             opacity="0.12" 
                             className="blur-sm"
                           />
-
+ 
                           {/* Outer high-precision glossy premium border triangle */}
                           <path 
                             d="M44.5 5.5c2.5-4.3 8.5-4.3 11 0l39.5 68.3c2.5 4.3-.5 9.7-5.5 9.7H10.5c-5 0-8-5.4-5.5-9.7L44.5 5.5z" 
                             fill="url(#warningBorderGrad)" 
                           />
-
+ 
                           {/* Inner glossy core background */}
                           <path 
                             d="M45.8 8c1.8-3.1 6.6-3.1 8.4 0l37.2 64.3c1.8 3.1-.4 7-4.2 7H12.8c-3.8 0-6-3.9-4.2-7L45.8 8z" 
                             fill="url(#warningInnerGrad)" 
                           />
-
+ 
                           {/* Semi-transparent gloss overlay for physical realism */}
                           <path 
                             d="M50 3.3L12.8 79.3c0 0 32-15 37.2-46.3c3.8-22.9 0-33 0-33z" 
                             fill="url(#warningGlossGrad)" 
                             opacity="0.45"
                           />
-
+ 
                           {/* Bold exclamation mark with drop shadow */}
                           <g filter="url(#exclamationShadow)">
                             <path 
@@ -645,16 +621,14 @@ export default function App() {
                             <circle cx="50" cy="59.5" r="4" fill="#ffffff" />
                           </g>
                         </svg>
-                      </motion.div>
+                      </div>
                     </div>
-
+ 
                     {/* Headline */}
-                    <h1 className={`font-sans text-[20.5px] md:text-[24px] font-bold text-center tracking-tight leading-snug mb-4 transition-colors duration-700 ${
-                      isDark ? "text-zinc-100" : "text-zinc-900"
-                    }`}>
+                    <h1 className="font-sans text-[20.5px] md:text-[24px] font-bold text-center tracking-tight leading-snug mb-4 text-[#ef4444] animate-[pulse_3s_cubic-bezier(0.4,0,0.6,1)_infinite]">
                       Region Not Supported
                     </h1>
-
+ 
                     {/* Restored Original Specific Compliance Text */}
                     <div className={`w-full text-center sm:text-left font-sans text-[13.5px] md:text-[14.5px] leading-relaxed mb-8 transition-all duration-700 ${
                       isDark ? "text-zinc-300" : "text-zinc-600"
@@ -663,7 +637,7 @@ export default function App() {
                         This site is currently unavailable in your location due to regional compliance policies, financial regulations, and service restrictions.
                       </p>
                     </div>
-
+ 
                      {/* Read About Restriction Button */}
                      <button
                        onClick={() => {
@@ -680,13 +654,13 @@ export default function App() {
                        Read About Restriction
                        <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                      </button>
-
-                  </motion.div>
+ 
+                  </div>
                 </div>
-
+ 
               </div>
             </main>
-          </motion.div>
+          </div>
         ) : pageView === "compliance-notice" ? (
           <motion.div
             key="compliance-notice-content"

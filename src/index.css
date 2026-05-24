@@ -81,20 +81,20 @@ html, body, #root {
 }
 
 .animate-robot-body {
-  animation: bob 4s ease-in-out infinite;
+  /* Completely static to eliminate continuous repaint/layout overhead */
 }
 
 .animate-robot-head {
-  animation: head-shake 3s ease-in-out infinite;
+  /* Completely static to eliminate continuous repaint/layout overhead */
   transform-origin: 50px 75px; /* Anchor bottom center of head group */
 }
 
 .animate-bubble-float {
-  animation: bubble-float 3.5s ease-in-out infinite;
+  /* Completely static to eliminate continuous repaint/layout overhead */
 }
 
 .animate-spark-shimmer {
-  animation: spark-shimmer 2.5s ease-in-out infinite;
+  /* Completely static to eliminate continuous repaint/layout overhead */
 }
 
 
